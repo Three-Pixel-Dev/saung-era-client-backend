@@ -68,7 +68,7 @@ public class AuthController {
     @Operation(summary = "Request OTP for password change")
     public ResponseEntity<String> requestPasswordChangeOtp() {
         authService.requestPasswordChangeOtp();
-        return ResponseEntity.ok("OTP sent successfully (Check server logs for mock)");
+        return ResponseEntity.ok("OTP sent successfully (Check server logs for mock otp)");
     }
 
     @PostMapping("/password/change")

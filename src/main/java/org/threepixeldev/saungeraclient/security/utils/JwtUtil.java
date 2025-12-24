@@ -5,71 +5,56 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 public class JwtUtil {
 
-    private static final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().systemProperties().load();
-
-    private static final String SECRET_KEY_STRING = dotenv.get("JWT_SECRET_KEY");
-    private static final Key SECRET_KEY;
-    private static final String ISSUER = "threepixeldev";
-
-    static {
-        if (SECRET_KEY_STRING == null || SECRET_KEY_STRING.isBlank()) {
-            throw new IllegalStateException("JWT_SECRET_KEY is missing in environment variables!");
-        }
-        try {
-            byte[] decodedKey = Base64.getDecoder().decode(SECRET_KEY_STRING);
-            SECRET_KEY = Keys.hmacShaKeyFor(decodedKey);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalStateException("JWT_SECRET_KEY is not a valid Base64 string!", e);
-        }
+    public static Key getSigningKey(JwtProperties props) {
+        byte[] decodedKey = Base64.getDecoder().decode(props.getSecret());
+        return Keys.hmacShaKeyFor(decodedKey);
     }
 
-    public static String generateToken(final Map<String, Object> claims, final String subject,
-            final long expirationMillis) {
+    public static String generateToken(
+            JwtProperties props,
+            Map<String, Object> claims,
+            String subject,
+            long expirationMillis
+    ) {
+        Date now = new Date();
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
-                .setIssuer(ISSUER)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
-                .signWith(SECRET_KEY)
+                .setIssuer(props.getIssuer())
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + expirationMillis))
+                .signWith(getSigningKey(props))
                 .compact();
     }
 
-    public static Claims decodeToken(String token) {
+    public static Claims decodeToken(JwtProperties props, String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(getSigningKey(props))
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-    public static boolean isTokenValid(String token) {
-        if (token == null) return false;
+    public static boolean isTokenValid(JwtProperties props, String token) {
         try {
-            final Claims claims = decodeToken(token);
-
-            if (claims.getExpiration().before(new Date())) {
-                return false;
-            }
-            if (!ISSUER.equals(claims.getIssuer())) {
-                return false;
-            }
-            return claims.getSubject() != null && !claims.getSubject().isEmpty();
+            Claims claims = decodeToken(props, token);
+            return claims.getExpiration().after(new Date())
+                    && props.getIssuer().equals(claims.getIssuer())
+                    && claims.getSubject() != null;
         } catch (Exception e) {
             return false;
         }
     }
-    
-    public static long getTokenRemainingValidityMillis(String token) {
+
+    public static long getTokenRemainingValidityMillis(JwtProperties props, String token) {
         try {
-            Claims claims = decodeToken(token);
+            Claims claims = decodeToken(props, token);
             return Math.max(claims.getExpiration().getTime() - System.currentTimeMillis(), 0);
         } catch (Exception e) {
             return 0;

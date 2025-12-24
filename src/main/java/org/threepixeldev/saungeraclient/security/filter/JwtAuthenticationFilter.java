@@ -48,13 +48,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return; 
             }
         }
-
         filterChain.doFilter(request, response);
     }
 
     private String extractToken(HttpServletRequest request) {
         final String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER);
-        
         if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX)) {
             return authorizationHeader.substring(BEARER_PREFIX.length());
         }
@@ -64,7 +62,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void setAuthenticationContext(Claims claims, HttpServletRequest request) {
         Long userId = claims.get("id", Long.class);
         String identifier = claims.getSubject();
-        System.out.println("Identifier is ========================++++++++++"+identifier);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 new CustomUserPrincipal(userId, identifier), 
                 null, 

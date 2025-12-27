@@ -24,6 +24,7 @@ import org.threepixeldev.saungeraclient.security.service.JwtService;
 import org.threepixeldev.saungeraclient.shared.data.model.User;
 import org.threepixeldev.saungeraclient.shared.data.repository.jpa.UserJpaRepository;
 import org.threepixeldev.saungeraclient.shared.utls.PhoneNumberHelper;
+import org.threepixeldev.saungeraclient.shared.utls.SecurityUtils;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -140,12 +141,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private User getAuthenticatedUser() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof CustomUserPrincipal customPrincipal) {
-            return userRepository.findById(customPrincipal.userId())
-                    .orElseThrow(() -> new UnauthorizedException("User not found"));
-        }
-        throw new UnauthorizedException("User not authenticated");
+        return userRepository.findById(SecurityUtils.getUserId())
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
     }
 
     private AuthResponse generateAuthResponse(User user) {
@@ -172,6 +169,4 @@ public class AuthServiceImpl implements AuthService {
     	        user.getCreatedAt()
     	);
     }
-    
-
 }

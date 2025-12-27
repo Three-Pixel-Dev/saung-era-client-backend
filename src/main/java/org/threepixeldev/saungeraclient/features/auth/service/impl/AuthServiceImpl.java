@@ -23,6 +23,7 @@ import org.threepixeldev.saungeraclient.security.exceptions.UnauthorizedExceptio
 import org.threepixeldev.saungeraclient.security.service.JwtService;
 import org.threepixeldev.saungeraclient.shared.data.model.User;
 import org.threepixeldev.saungeraclient.shared.data.repository.jpa.UserJpaRepository;
+import org.threepixeldev.saungeraclient.shared.utls.PhoneNumberHelper;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -49,13 +50,12 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException("Email already exists");
         }
-
         User user = User.builder()
                 .name(request.name())
                 .username(request.username())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
-                .phoneNumber(request.phoneNumber())
+                .phoneNumber(PhoneNumberHelper.normalizePhoneNumber(request.phoneNumber()))
                 .build();
 
         userRepository.save(user);
@@ -64,12 +64,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
+    	boolean isEmail = request.identifier().contains("@");
+    	User user;
+        if (isEmail) {
+            user = userRepository.findByEmail(request.identifier())
+                    .orElseThrow(() -> new IllegalArgumentException("User not found with this email"));
+        } else {
+            user = userRepository.findByPhoneNumber(PhoneNumberHelper.normalizePhoneNumber(request.identifier()))
+                    .orElseThrow(() -> new IllegalArgumentException("User not found with this phone number"));
+        }
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
+                new UsernamePasswordAuthenticationToken(user.getEmail(), request.password())
         );
-
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
 
         return generateAuthResponse(user);
     }
@@ -166,4 +172,6 @@ public class AuthServiceImpl implements AuthService {
     	        user.getCreatedAt()
     	);
     }
+    
+
 }

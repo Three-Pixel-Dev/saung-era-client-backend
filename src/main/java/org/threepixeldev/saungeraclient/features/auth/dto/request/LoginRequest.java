@@ -3,9 +3,9 @@ package org.threepixeldev.saungeraclient.features.auth.dto.request;
 import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(
-	    @NotBlank(message = "Email or Phone number is required")
-	    String identifier,
+    @NotBlank(message = "Email or Phone number is required")
+    String identifier,
 
-	    @NotBlank(message = "Password is required")
-	    String password
-	) {}
+    @NotBlank(message = "Password is required")
+    String password
+) {}

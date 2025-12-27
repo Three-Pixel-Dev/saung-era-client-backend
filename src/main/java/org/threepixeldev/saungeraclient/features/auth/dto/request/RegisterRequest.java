@@ -25,5 +25,8 @@ public record RegisterRequest(
 
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number format")
-    String phoneNumber
+    String phoneNumber,
+    
+    @NotBlank(message = "Verification token is required")
+    String verificationToken
 ) {}

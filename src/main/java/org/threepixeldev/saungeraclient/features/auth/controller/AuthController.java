@@ -37,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Login user")
+    @Operation(summary = "Login user with email or phone number")
     public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }

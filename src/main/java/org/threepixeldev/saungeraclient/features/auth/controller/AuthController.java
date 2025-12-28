@@ -67,7 +67,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.getCurrentUser());
     }
 
-    @PostMapping("/password/request-otp")
+    @PostMapping("/request-otp")
     @Operation(summary = "Request OTP with mode (register or password)")
     public ResponseEntity<String> requestPasswordChangeOtp(@Valid @RequestBody OtpRequest request) {
         authService.requestOtp(request);

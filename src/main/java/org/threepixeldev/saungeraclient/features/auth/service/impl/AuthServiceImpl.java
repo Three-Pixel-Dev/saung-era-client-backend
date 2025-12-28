@@ -56,13 +56,15 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Session expired");
         }
     	String[] parts = tokenValue.split(":");
-        String verifiedPhone = parts[0];
+        String verifiedPhone = PhoneNumberHelper.normalizePhoneNumber(parts[0]);
         String verifiedMode = parts[1];
 
         if (!"register".equals(verifiedMode)) {
             throw new IllegalArgumentException("Invalid token scope. This token cannot be used for registration.");
         }
         String requestPhone = PhoneNumberHelper.normalizePhoneNumber(request.phoneNumber());
+        System.out.println("REQUESTED PHONE "+ requestPhone);
+        System.out.println("VERIFIED PHONE "+verifiedPhone);
         if (!verifiedPhone.equals(requestPhone)) {
              throw new IllegalArgumentException("Phone number mismatch");
         }
@@ -128,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
     
     @Override
     public void requestOtp(OtpRequest request) {
-        String phoneNumber = request.phoneNumber();
+        String phoneNumber = PhoneNumberHelper.normalizePhoneNumber(request.phoneNumber());
         String mode = request.mode();
 
         String prefix = mode.equals("password") ? OTP_PWD_PREFIX : OTP_REG_PREFIX;
@@ -157,7 +159,6 @@ public class AuthServiceImpl implements AuthService {
         
         String otpKey = (mode.equals("register") ? OTP_REG_PREFIX : OTP_PWD_PREFIX) + phone;
         String cachedOtp = redisTemplate.opsForValue().get(otpKey);
-
         if (cachedOtp == null || !cachedOtp.equals(request.otp())) {
             throw new IllegalArgumentException("Invalid or expired OTP");
         }

@@ -15,6 +15,7 @@ import org.threepixeldev.saungeraclient.features.auth.dto.request.OtpRequest;
 import org.threepixeldev.saungeraclient.features.auth.dto.request.RefreshTokenRequest;
 import org.threepixeldev.saungeraclient.features.auth.dto.request.RegisterRequest;
 import org.threepixeldev.saungeraclient.features.auth.dto.request.VerifyOtpRequest;
+import org.threepixeldev.saungeraclient.features.auth.dto.request.VerifyRegisterRequest;
 import org.threepixeldev.saungeraclient.features.auth.dto.response.AuthResponse;
 import org.threepixeldev.saungeraclient.features.auth.dto.response.UserResponse;
 import org.threepixeldev.saungeraclient.features.auth.service.AuthService;
@@ -38,7 +39,14 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
-
+    
+    @PostMapping("/verify")
+    @Operation(summary = "Validate all fields before registration process (fail first)")
+    public ResponseEntity<String> verifyFields(@RequestBody @Valid VerifyRegisterRequest request) {
+    	authService.verifyRegister(request);
+        return ResponseEntity.ok("Fields validation success.");
+    }
+    
     @PostMapping("/login")
     @Operation(summary = "Login user with email or phone number")
     public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest request) {
@@ -67,7 +75,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.getCurrentUser());
     }
 
-    @PostMapping("/password/request-otp")
+    @PostMapping("/request-otp")
     @Operation(summary = "Request OTP with mode (register or password)")
     public ResponseEntity<String> requestPasswordChangeOtp(@Valid @RequestBody OtpRequest request) {
         authService.requestOtp(request);

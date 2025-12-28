@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.threepixeldev.saungeraclient.features.auth.dto.request.ChangePasswordRequest;
 import org.threepixeldev.saungeraclient.features.auth.dto.request.LoginRequest;
@@ -18,6 +19,7 @@ import org.threepixeldev.saungeraclient.features.auth.dto.request.OtpRequest;
 import org.threepixeldev.saungeraclient.features.auth.dto.request.RefreshTokenRequest;
 import org.threepixeldev.saungeraclient.features.auth.dto.request.RegisterRequest;
 import org.threepixeldev.saungeraclient.features.auth.dto.request.VerifyOtpRequest;
+import org.threepixeldev.saungeraclient.features.auth.dto.request.VerifyRegisterRequest;
 import org.threepixeldev.saungeraclient.features.auth.dto.response.AuthResponse;
 import org.threepixeldev.saungeraclient.features.auth.dto.response.UserResponse;
 import org.threepixeldev.saungeraclient.features.auth.service.AuthService;
@@ -48,6 +50,7 @@ public class AuthServiceImpl implements AuthService {
     private static final String RATE_LIMIT_PREFIX = "otp:rate_limit:";
     private static final String VERIFIED_TOKEN_PREFIX = "verify_token:";
     @Override
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
     	String tokenKey = VERIFIED_TOKEN_PREFIX + request.verificationToken();
     	String tokenValue = redisTemplate.opsForValue().get(tokenKey);
@@ -56,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Session expired");
         }
     	String[] parts = tokenValue.split(":");
-        String verifiedPhone = parts[0];
+        String verifiedPhone = PhoneNumberHelper.normalizePhoneNumber(parts[0]);
         String verifiedMode = parts[1];
 
         if (!"register".equals(verifiedMode)) {
@@ -84,7 +87,19 @@ public class AuthServiceImpl implements AuthService {
         redisTemplate.delete(tokenKey);
         return generateAuthResponse(user);
     }
-
+    
+    @Override
+    public void verifyRegister(VerifyRegisterRequest request) {
+    	if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
+            throw new IllegalArgumentException("Account with this phone number already exists.");
+        }
+    	if (userRepository.existsByUsername(request.username())) {
+            throw new IllegalArgumentException("Account with this username already exists");
+        }
+        if (userRepository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("Account with this email already exists");
+        }
+    }
     @Override
     public AuthResponse login(LoginRequest request) {
     	boolean isEmail = request.identifier().contains("@");
@@ -121,6 +136,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponse getCurrentUser() {
         User user = getAuthenticatedUser();
         return mapToUserResponse(user);
@@ -128,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
     
     @Override
     public void requestOtp(OtpRequest request) {
-        String phoneNumber = request.phoneNumber();
+        String phoneNumber = PhoneNumberHelper.normalizePhoneNumber(request.phoneNumber());
         String mode = request.mode();
 
         String prefix = mode.equals("password") ? OTP_PWD_PREFIX : OTP_REG_PREFIX;
@@ -157,7 +173,6 @@ public class AuthServiceImpl implements AuthService {
         
         String otpKey = (mode.equals("register") ? OTP_REG_PREFIX : OTP_PWD_PREFIX) + phone;
         String cachedOtp = redisTemplate.opsForValue().get(otpKey);
-
         if (cachedOtp == null || !cachedOtp.equals(request.otp())) {
             throw new IllegalArgumentException("Invalid or expired OTP");
         }

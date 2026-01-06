@@ -1,30 +1,19 @@
 package org.threepixeldev.saungeraclient.features.auth.controller;
 
 
-import java.util.Map;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.ChangePasswordRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.LoginRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.OtpRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.RefreshTokenRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.RegisterRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.VerifyOtpRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.VerifyRegisterRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.response.AuthResponse;
-import org.threepixeldev.saungeraclient.features.auth.dto.response.UserResponse;
-import org.threepixeldev.saungeraclient.features.auth.service.AuthService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.threepixeldev.saungeraclient.features.auth.dto.request.*;
+import org.threepixeldev.saungeraclient.features.auth.dto.response.AuthResponse;
+import org.threepixeldev.saungeraclient.features.auth.dto.response.UserResponse;
+import org.threepixeldev.saungeraclient.features.auth.service.AuthService;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/client/auth")
@@ -94,5 +83,11 @@ public class AuthController {
     public ResponseEntity<String> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
         authService.changePassword(request);
         return ResponseEntity.ok("Password changed successfully");
+    }
+
+    @PostMapping("/google")
+    @Operation(summary = "Login or Register with Google")
+    public ResponseEntity<AuthResponse> loginWithGoogle(@RequestBody @Valid GoogleLoginRequest request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request));
     }
 }

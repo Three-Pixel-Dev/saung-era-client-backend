@@ -1,9 +1,6 @@
 package org.threepixeldev.saungeraclient.security.exceptions;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.threepixeldev.saungeraclient.security.exceptions.dto.ErrorResponse;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class SecurityExceptionHandler {
@@ -51,7 +50,10 @@ public class SecurityExceptionHandler {
                 .collect(Collectors.joining(", "));
         return buildErrorResponse(message, HttpStatus.BAD_REQUEST, request);
     }
-
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, HttpServletRequest request) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+    }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
         ex.printStackTrace();

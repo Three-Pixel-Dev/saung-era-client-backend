@@ -9,20 +9,28 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Component
 public class GoogleHelper {
 
-    @Value("${google.client.id}")
-    private String clientId;
+    @Value("${google.webclient.id}")
+    private String webClientId;
+     @Value("${google.android.client.id}")
+     private String androidClientId;
 
     public GoogleIdToken.Payload verify(String idTokenString) {
         try {
+            List<String> trustedClientIds = Arrays.asList(
+                    webClientId,
+                    androidClientId
+            );
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(),
                     new JacksonFactory())
-                    .setAudience(Collections.singletonList(clientId))
+                    .setAudience(trustedClientIds)
                     .build();
 
             GoogleIdToken idToken = verifier.verify(idTokenString);

@@ -1,10 +1,9 @@
 package org.threepixeldev.saungeraclient.features.auth.service.impl;
 
-import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,13 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.ChangePasswordRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.LoginRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.OtpRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.RefreshTokenRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.RegisterRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.VerifyOtpRequest;
-import org.threepixeldev.saungeraclient.features.auth.dto.request.VerifyRegisterRequest;
+import org.threepixeldev.saungeraclient.features.auth.dto.request.*;
 import org.threepixeldev.saungeraclient.features.auth.dto.response.AuthResponse;
 import org.threepixeldev.saungeraclient.features.auth.dto.response.UserResponse;
 import org.threepixeldev.saungeraclient.features.auth.service.AuthService;
@@ -27,12 +20,15 @@ import org.threepixeldev.saungeraclient.security.exceptions.UnauthorizedExceptio
 import org.threepixeldev.saungeraclient.security.service.JwtService;
 import org.threepixeldev.saungeraclient.shared.data.model.User;
 import org.threepixeldev.saungeraclient.shared.data.repository.jpa.UserJpaRepository;
+import org.threepixeldev.saungeraclient.shared.utls.GoogleHelper;
 import org.threepixeldev.saungeraclient.shared.utls.PhoneNumberHelper;
 import org.threepixeldev.saungeraclient.shared.utls.SecurityUtils;
 
-import io.jsonwebtoken.Claims;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +45,8 @@ public class AuthServiceImpl implements AuthService {
     private static final String OTP_REG_PREFIX = "otp:register_req:";
     private static final String RATE_LIMIT_PREFIX = "otp:rate_limit:";
     private static final String VERIFIED_TOKEN_PREFIX = "verify_token:";
+
+    private final GoogleHelper googleHelper;
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -220,6 +218,34 @@ public class AuthServiceImpl implements AuthService {
         redisTemplate.delete(tokenKey);
         
         log.info("Password successfully reset for user: {}", user.getUsername());
+    }
+
+    @Override
+    @Transactional
+    public AuthResponse loginWithGoogle(GoogleLoginRequest request) {
+        GoogleIdToken.Payload payload = googleHelper.verify(request.idToken());
+        String email = payload.getEmail();
+        String name = (String) payload.get("name");
+
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            String baseUsername = email.split("@")[0];
+            String uniqueUsername = baseUsername;
+
+            int counter = 1;
+            while (userRepository.existsByUsername(uniqueUsername)) {
+                uniqueUsername = baseUsername + counter++;
+            }
+
+            return userRepository.save(User.builder()
+                    .name(name)
+                    .email(email)
+                    .username(uniqueUsername)
+                    .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                    .phoneNumber(null)
+                    .build());
+        });
+
+        return generateAuthResponse(user);
     }
 
     private User getAuthenticatedUser() {

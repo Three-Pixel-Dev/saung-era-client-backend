@@ -6,9 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.threepixeldev.saungeraadmin.features.category.dto.CategoryResponse;
-import org.threepixeldev.saungeraadmin.features.product.constants.ProductSwaggerMessages;
-import org.threepixeldev.saungeraadmin.shared.dto.MasterData;
+import org.threepixeldev.saungeraclient.features.category.dto.CategoryResponse;
+import org.threepixeldev.saungeraclient.shared.dto.MasterData;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,46 +19,47 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "Product list response with additional stock and price information")
 public class ProductListResponse extends MasterData {
-    @Schema(description = ProductSwaggerMessages.PRODUCT_ID_DESCRIPTION, example = "1")
+
+    @Schema(description = "Unique identifier of the product", example = "1")
     private Long id;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_NAME_DESCRIPTION, example = "Men's T-Shirt")
+    @Schema(description = "Name of the product", example = "Men's T-Shirt")
     private String name;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_DESCRIPTION_DESCRIPTION, example = "Comfortable cotton t-shirt")
+    @Schema(description = "General description of the product", example = "Comfortable cotton t-shirt")
     private String description;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_DISCOUNT_TYPE_DESCRIPTION, example = "PERCENTAGE")
+    @Schema(description = "Type of discount applied (e.g., PERCENTAGE, FIXED)", example = "PERCENTAGE")
     private String discountType;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_DISCOUNT_AMOUNT_DESCRIPTION, example = "10.00")
+    @Schema(description = "Amount value of the discount", example = "10.00")
     private BigDecimal discountAmount;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_SHORT_DESCRIPTION_DESCRIPTION, example = "Premium cotton t-shirt")
+    @Schema(description = "Brief summary of the product", example = "Premium cotton t-shirt")
     private String shortDescription;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_LONG_DESCRIPTION_DESCRIPTION, example = "Made from 100% organic cotton, this t-shirt offers comfort and style.")
+    @Schema(description = "Detailed description of the product features", example = "Made from 100% organic cotton, this t-shirt offers comfort and style.")
     private String longDescription;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_WEIGHT_DESCRIPTION, example = "0.2")
+    @Schema(description = "Weight of the product", example = "0.2")
     private BigDecimal weight;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_COUNTRY_ID_DESCRIPTION, example = "1")
+    @Schema(description = "Identifier of the country of origin", example = "1")
     private Long countryId;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_CATEGORIES_DESCRIPTION)
+    @Schema(description = "List of categories associated with the product")
     private List<CategoryResponse> categories;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_STATUS_DESCRIPTION, example = "Active")
+    @Schema(description = "Current publication status of the product", example = "Active")
     private String status;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_IS_TAXABLE_DESCRIPTION, example = "true")
+    @Schema(description = "Indicates if the product is subject to tax", example = "true")
     private Boolean isTaxable;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_ALLOW_BACKORDER_DESCRIPTION, example = "false")
+    @Schema(description = "Indicates if the product can be ordered when out of stock", example = "false")
     private Boolean allowBackorder;
 
-    @Schema(description = ProductSwaggerMessages.PRODUCT_TAGS_DESCRIPTION, example = "Modern,Interior")
+    @Schema(description = "Comma-separated tags for search and filtering", example = "Modern,Interior")
     private String tags;
 
     @Schema(description = "Total stock quantity from all product code values", example = "500")

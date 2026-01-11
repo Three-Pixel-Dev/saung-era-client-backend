@@ -3,15 +3,14 @@ package org.threepixeldev.saungeraclient.features.product.mapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.threepixeldev.saungeraadmin.features.category.mapper.CategoryMapper;
-import org.threepixeldev.saungeraadmin.features.product.dto.ProductCodeValueResponse;
-import org.threepixeldev.saungeraadmin.features.product.dto.ProductListResponse;
-import org.threepixeldev.saungeraadmin.features.product.dto.ProductResponse;
-import org.threepixeldev.saungeraadmin.shared.data.model.Product;
-import org.threepixeldev.saungeraadmin.shared.data.model.ProductCodeValue;
-import org.threepixeldev.saungeraadmin.shared.data.model.User;
-import org.threepixeldev.saungeraadmin.shared.data.repository.jpa.UserJpaRepository;
-import org.threepixeldev.saungeraadmin.shared.mapper.UserMapper;
+import org.threepixeldev.saungeraclient.features.category.mapper.CategoryMapper;
+import org.threepixeldev.saungeraclient.features.product.dto.ProductCodeValueResponse;
+import org.threepixeldev.saungeraclient.features.product.dto.ProductListResponse;
+import org.threepixeldev.saungeraclient.features.product.dto.ProductResponse;
+import org.threepixeldev.saungeraclient.shared.data.model.Product;
+import org.threepixeldev.saungeraclient.shared.data.model.ProductCodeValue;
+import org.threepixeldev.saungeraclient.shared.data.model.User;
+import org.threepixeldev.saungeraclient.shared.data.repository.jpa.UserJpaRepository;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
 public class ProductMapper {
 
     private final UserJpaRepository userRepository;
-    private final UserMapper userMapper;
     private final CategoryMapper categoryMapper;
 
     public ProductResponse toResponse(Product product) {
@@ -66,20 +64,6 @@ public class ProductMapper {
         response.setCreatedAt(product.getCreatedAt());
         response.setUpdatedAt(product.getUpdatedAt());
         response.setDeletedAt(product.getDeletedAt());
-
-        if (product.getCreatedBy() != null) {
-            User createdByUser = userRepository.findById(product.getCreatedBy()).orElse(null);
-            response.setCreatedBy(userMapper.toUserResponse(createdByUser));
-        }
-        if (product.getUpdatedBy() != null) {
-            User updatedByUser = userRepository.findById(product.getUpdatedBy()).orElse(null);
-            response.setUpdatedBy(userMapper.toUserResponse(updatedByUser));
-        }
-        if (product.getDeletedBy() != null) {
-            User deletedByUser = userRepository.findById(product.getDeletedBy()).orElse(null);
-            response.setDeletedBy(userMapper.toUserResponse(deletedByUser));
-        }
-
         return response;
     }
 
@@ -142,19 +126,6 @@ public class ProductMapper {
         response.setCreatedAt(product.getCreatedAt());
         response.setUpdatedAt(product.getUpdatedAt());
         response.setDeletedAt(product.getDeletedAt());
-
-        if (product.getCreatedBy() != null) {
-            User createdByUser = userRepository.findById(product.getCreatedBy()).orElse(null);
-            response.setCreatedBy(userMapper.toUserResponse(createdByUser));
-        }
-        if (product.getUpdatedBy() != null) {
-            User updatedByUser = userRepository.findById(product.getUpdatedBy()).orElse(null);
-            response.setUpdatedBy(userMapper.toUserResponse(updatedByUser));
-        }
-        if (product.getDeletedBy() != null) {
-            User deletedByUser = userRepository.findById(product.getDeletedBy()).orElse(null);
-            response.setDeletedBy(userMapper.toUserResponse(deletedByUser));
-        }
 
         if (!CollectionUtils.isEmpty(productCodeValues)) {
             Integer totalStock = productCodeValues.stream()

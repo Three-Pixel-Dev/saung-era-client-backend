@@ -23,12 +23,6 @@ public class Product extends MasterEntity {
 
     private String description;
 
-    @Column(nullable = false)
-    private Integer quantity;
-
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal price;
-
     @Column(name = "discount_type")
     private String discountType;
 
@@ -46,13 +40,19 @@ public class Product extends MasterEntity {
     @Column(name = "country_id")
     private Long countryId;
 
-    @ManyToMany
-    @JoinTable(
-        name = "product_categories",
-        joinColumns = @JoinColumn(name = "product_id"),
-        inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
-    private List<Category> categories;
+    @Column(name = "is_taxable")
+    private Boolean isTaxable;
+
+    @Column(name = "allow_backorder")
+    private Boolean allowBackorder;
+
+    @Column(name = "status")
+    private String status;
+    @Column(name = "tags")
+    private String tags;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductCategory> productCategories;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rating> ratings;
@@ -65,4 +65,6 @@ public class Product extends MasterEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Promotion> promotions;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductCodeValue> productCodeValues;
 }

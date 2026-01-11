@@ -8,6 +8,7 @@ import org.threepixeldev.saungeraclient.features.cart.dto.response.CartItemRespo
 import org.threepixeldev.saungeraclient.features.cart.service.CartService;
 import org.threepixeldev.saungeraclient.shared.data.model.CartItem;
 import org.threepixeldev.saungeraclient.shared.data.model.Product;
+import org.threepixeldev.saungeraclient.shared.data.model.ProductCodeValue;
 import org.threepixeldev.saungeraclient.shared.data.model.User;
 import org.threepixeldev.saungeraclient.shared.data.repository.jpa.CartItemJpaRepository;
 import org.threepixeldev.saungeraclient.shared.data.repository.jpa.ProductJpaRepository;
@@ -53,7 +54,10 @@ public class CartServiceImpl implements CartService {
     }
 
     private CartItemResponse mapToResponse(CartItem item) {
-        BigDecimal price = item.getProduct().getPrice();
+        BigDecimal price = item.getProduct().getProductCodeValues().stream()
+                .map(ProductCodeValue::getPrice)
+                .min(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
         BigDecimal subTotal = price.multiply(BigDecimal.valueOf(item.getQuantity()));
         return new CartItemResponse(
                 item.getId(),

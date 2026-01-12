@@ -31,6 +31,8 @@ public class Order extends MasterEntity {
 
     @Column(name = "promotion_code")
     private String promotionCode;
+    @Column(name = "status")
+    private String status; // Added status field (e.g., PENDING, COMPLETED, REFUND_REQUESTED, REFUNDED)
 
     @ManyToOne
     @JoinColumn(name = "promotion_id")

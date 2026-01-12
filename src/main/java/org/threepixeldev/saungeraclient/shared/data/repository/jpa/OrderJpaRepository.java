@@ -10,7 +10,12 @@ import java.util.List;
 @Repository
 public interface OrderJpaRepository extends JpaRepository<Order, Long> {
     List<Order> findByUserId(Long userId);
+
     List<Order> findByPromotionId(Long promotionId);
+
     List<Order> findByOrderedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+
     List<Order> findByUserIdAndOrderedDateBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Order> findByUserIdAndStatus(Long userId, String status);
 }
